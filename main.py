@@ -2,6 +2,9 @@ import logging
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler
 from telegram import ReplyKeyboardMarkup
 import requests
+import sqlalchemy
+from data import db_session
+db_session.global_init("db/blogs.db")
 
 headers = {
     "X-RapidAPI-Key": "871aadb731msh302174792d744b8p1b59bdjsn482167023d41",
