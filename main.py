@@ -25,7 +25,7 @@ cor = 0
 info = ''
 
 
-def get_response(countru):
+def get_response(country):
     url = f"https://wft-geo-db.p.rapidapi.com/v1/geo/countries/US"  # бд
     response = requests.request("GET", url, headers=headers)
     return response.json()
@@ -35,25 +35,25 @@ async def start(update, context):
     """Отправляет сообщение когда получена команда /start"""
     user = update.effective_user
     await update.message.reply_html(
-        rf"Привет {user.mention_html()}! Я бот, который поможет тебе подтянуть свои знания по географии и хорошо"
-        rf" провести время)", reply_markup=markup
+        rf"Привет {user.mention_html()}! Я - бот, который поможет тебе подтянуть свои знания по географии и хорошо"
+        rf" провести время.)", reply_markup=markup
     )
 
 
 async def help_command(update, context):
     """Отправляет сообщение когда получена команда /help"""
-    await update.message.reply_text("Напишем всякой фигни")  # TO Do: написать что-то
+    await update.message.reply_text("Напишем всякой фигни.")  # TO Do: написать что-то
 
 
 async def info_country(update, context):
     await update.message.reply_text(
-        "Привет. Я готов рассказать тебе о любой стране, которую знаю. Пожалуйста напиши название страны!")
+        "Привет. Я готов рассказать тебе о любой стране, которую знаю. Пожалуйста, напиши название страны!")
     return 1
 
 
 async def game_capital(update, context):
     await update.message.reply_text(
-        "Привет! И так начнем игру")
+        "Привет! И так начнем игру.")
     info = get_response('us')  # Рандом и бд
     await update.message.reply_text(
         f"{info['data']['capital']}\n")
@@ -65,7 +65,7 @@ async def game_capital(update, context):
 
 async def game_flag(update, context):
     await update.message.reply_text(
-        "Привет! И так начнем игру")
+        "Привет! И так начнём игру.")
     info = get_response('us')  # Рандом и бд
     await update.message.reply_text(
         f"картинка") # Обработка картинок
@@ -79,16 +79,16 @@ async def first_response_info(update, context):
     locality = update.message.text  # Лезем в бд получаем id страны и создаем запрос. из запроса берем информацию и загружаем картинку. Здесь лежит страна
     info = get_response(locality)
     await update.message.reply_text(
-        f"Полное название страны {info['data']['name']}\n"
-        f"Столица {info['data']['capital']}\n")
-    await update.message.reply_text("Хотите вы продолжить?")
+        f"Полное название страны: {info['data']['name']}\n."
+        f"Столица: {info['data']['capital']}\n.")
+    await update.message.reply_text("Вы хотите продолжить?")
     return 2
 
 
 async def second_response_info(update, context):
     locality = update.message.text
     if locality == 'да':
-        await update.message.reply_text("Напишите новую страну")
+        await update.message.reply_text("Напишите новую страну.")
         return 1
     else:
         await update.message.reply_text("Всего доброго!")
@@ -106,15 +106,15 @@ async def first_response_capital(update, context):
     info = get_response('us') # генератор случ страны
     global count, cor
     if locality == info['data']['name']:
-        await update.message.reply_text('Верно')
+        await update.message.reply_text('Верно.')
         cor += 1
     else:
-        await update.message.reply_text("Неверно")
+        await update.message.reply_text("Неверно.")
         count += 1
     if count < 2:
         await update.message.reply_text("Хотели бы вы подробнее узнать о стране?")
         return 2
-    await update.message.reply_text(f'Вы проиграли вас результат {cor}')
+    await update.message.reply_text(f'Вы проиграли, Ваш результат: {cor}.')
     return ConversationHandler.END
 
 
@@ -125,9 +125,9 @@ async def second_response_capital(update, context):
     print(locality)
     if locality == 'да':
         await update.message.reply_text(
-            f"Полное название страны {info['data']['name']}\n"
-            f"Столица {info['data']['capital']}\n")
-    await update.message.reply_text(f"Продолжаем")
+            f"Полное название страны: {info['data']['name']}\n."
+            f"Столица: {info['data']['capital']}\n.")
+    await update.message.reply_text(f"Продолжаем.")
     await update.message.reply_text(
         f"{info['data']['capital']}\n")
     return 3
@@ -139,15 +139,15 @@ async def third_response_capital(update, context):
     locality = update.message.text
     global count, cor
     if locality == info['data']['name']:
-        await update.message.reply_text('Верно')
+        await update.message.reply_text('Верно.')
         cor += 1
     else:
-        await update.message.reply_text("Неверно")
+        await update.message.reply_text("Неверно.")
         count += 1
     if count < 2:
-        await update.message.reply_text("Хотели бы вы подробнее узнать о стране")
+        await update.message.reply_text("Хотели бы Вы подробнее узнать о стране?")
         return 2
-    await update.message.reply_text(f'Вы проиграли вас результат {cor}')
+    await update.message.reply_text(f'Вы проиграли, Ваш результат: {cor}')
     return ConversationHandler.END
 
 
@@ -157,15 +157,15 @@ async def first_response_flag(update, context):
     info = get_response('us') # Рандом и бд  Вместо Us должна быть переменная с кодом страны
     global count, cor
     if locality == info['data']['name']:
-        await update.message.reply_text('Верно')
+        await update.message.reply_text('Верно.')
         cor += 1
     else:
-        await update.message.reply_text("Неверно")
+        await update.message.reply_text("Неверно.")
         count += 1
     if count < 2:
         await update.message.reply_text("Хотите ли вы узнать подробнее о стране?")
         return 2
-    await update.message.reply_text(f'Вы проиграли вас результат {cor}')
+    await update.message.reply_text(f'Вы проиграли, Ваш результат: {cor}.')
     return ConversationHandler.END
 
 
@@ -177,8 +177,8 @@ async def second_response_flag(update, context):
         await update.message.reply_text(
             f"Полное название страны {info['data']['name']}\n"
             f"Столица {info['data']['capital']}\n")
-    await update.message.reply_text(f"Продолжаем")
-    await update.message.reply_text(f"Здесь должа быть картинка") # Picrute
+    await update.message.reply_text(f"Продолжаем.")
+    await update.message.reply_text(f"Здесь должа быть картинка.") # Picture
     return 3
 
 
@@ -188,15 +188,15 @@ async def third_response_flag(update, context):
     locality = update.message.text
     global count, cor
     if locality == info['data']['name']:
-        await update.message.reply_text('Верно')
+        await update.message.reply_text('Верно.')
         cor += 1
     else:
-        await update.message.reply_text("Неверно")
+        await update.message.reply_text("Неверно.")
         count += 1
     if count < 2:
-        await update.message.reply_text("Хотели бы вы подробнее узнать о стране")
+        await update.message.reply_text("Хотели бы вы подробнее узнать о стране?")
         return 2
-    await update.message.reply_text(f'Вы проиграли вас результат {cor}')
+    await update.message.reply_text(f'Вы проиграли, Ваш результат: {cor}.')
     return ConversationHandler.END
 
 
