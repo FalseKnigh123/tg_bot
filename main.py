@@ -1,10 +1,8 @@
 import logging
+import aiohttp as aiohttp
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler
 from telegram import ReplyKeyboardMarkup
 import requests
-import sqlalchemy
-from data import db_session
-db_session.global_init("db/blogs.db")
 
 headers = {
     "X-RapidAPI-Key": "871aadb731msh302174792d744b8p1b59bdjsn482167023d41",
@@ -52,6 +50,7 @@ async def info_country(update, context):
 
 
 async def game_capital(update, context):
+    global info
     await update.message.reply_text(
         "Привет! И так начнем игру")
     info = get_response('us')  # Рандом и бд
@@ -64,11 +63,11 @@ async def game_capital(update, context):
 
 
 async def game_flag(update, context):
+    global info
     await update.message.reply_text(
         "Привет! И так начнем игру")
     info = get_response('us')  # Рандом и бд
-    await update.message.reply_text(
-        f"картинка") # Обработка картинок
+    await get_image(update, context)# Обработка картинок
     global count, cor
     count = 0
     cor = 0
@@ -76,6 +75,7 @@ async def game_flag(update, context):
 
 
 async def first_response_info(update, context):
+    global info
     locality = update.message.text  # Лезем в бд получаем id страны и создаем запрос. из запроса берем информацию и загружаем картинку. Здесь лежит страна
     info = get_response(locality)
     await update.message.reply_text(
@@ -103,7 +103,7 @@ async def stop(update, context):
 async def first_response_capital(update, context):
     global info
     locality = update.message.text
-    info = get_response('us') # генератор случ страны
+    info = get_response('us')  # генератор случ страны
     global count, cor
     if locality == info['data']['name']:
         await update.message.reply_text('Верно')
@@ -135,7 +135,7 @@ async def second_response_capital(update, context):
 
 async def third_response_capital(update, context):
     global info
-    info = get_response('us') # Рандом и бд  Вместо Us должна быть переменная с кодом страны
+    info = get_response('us')  # Рандом и бд  Вместо Us должна быть переменная с кодом страны
     locality = update.message.text
     global count, cor
     if locality == info['data']['name']:
@@ -154,7 +154,7 @@ async def third_response_capital(update, context):
 async def first_response_flag(update, context):
     locality = update.message.text
     global info
-    info = get_response('us') # Рандом и бд  Вместо Us должна быть переменная с кодом страны
+    info = get_response('us')  # Рандом и бд  Вместо Us должна быть переменная с кодом страны
     global count, cor
     if locality == info['data']['name']:
         await update.message.reply_text('Верно')
@@ -178,7 +178,7 @@ async def second_response_flag(update, context):
             f"Полное название страны {info['data']['name']}\n"
             f"Столица {info['data']['capital']}\n")
     await update.message.reply_text(f"Продолжаем")
-    await update.message.reply_text(f"Здесь должа быть картинка") # Picrute
+    await update.message.reply_text(f"Здесь должа быть картинка")  # Picrute
     return 3
 
 
@@ -198,6 +198,17 @@ async def third_response_flag(update, context):
         return 2
     await update.message.reply_text(f'Вы проиграли вас результат {cor}')
     return ConversationHandler.END
+
+
+async def get_image(update, context):
+    global info
+    info = get_response('')
+    async with aiohttp.ClientSession() as session:
+        print(info['data']['flagImageUri'])
+        async with session.get(info['data']['flagImageUri']) as r:
+            data = await r.read()
+            print(data)
+            await update.message.reply_photo(data)
 
 
 info_handler = ConversationHandler(
@@ -232,7 +243,7 @@ flag_handler = ConversationHandler(
 def main():
     application = Application.builder().token("6211811458:AAE10kS4o9HfzHTQa_uGXHaWXuqu2bia83A").build()
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("help", get_image))
     application.add_handler(flag_handler)
     application.add_handler(info_handler)
     application.add_handler(capital_handler)
