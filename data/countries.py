@@ -4,6 +4,7 @@ import sqlalchemy
 
 from data.db_session import SqlAlchemyBase
 
+
 class Country(SqlAlchemyBase):
     __tablename__ = 'country'
 
