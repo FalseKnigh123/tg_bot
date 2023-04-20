@@ -2,7 +2,7 @@ import datetime
 
 import sqlalchemy
 
-from data.db_session import SqlAlchemyBase
+from tg_bot.data.db_session import SqlAlchemyBase
 
 
 class Country(SqlAlchemyBase):
@@ -21,3 +21,4 @@ class Country(SqlAlchemyBase):
 
     created_date = sqlalchemy.Column(sqlalchemy.DateTime,
                                      default=datetime.datetime.now)
+

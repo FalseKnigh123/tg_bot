@@ -3,8 +3,10 @@ import aiohttp as aiohttp
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler
 from telegram import ReplyKeyboardMarkup
 import requests
-import sqlalchemy
-from data import db_session
+
+from tg_bot.data import db_session
+from tg_bot.main2 import create_table
+
 db_session.global_init("db/blogs.db")
 
 headers = {
@@ -251,4 +253,6 @@ def main():
 
 
 if __name__ == '__main__':
+    create_table()
     main()
+
