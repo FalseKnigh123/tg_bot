@@ -6,9 +6,14 @@ from random import choice
 from data import db_session
 from data.countries import Country
 from main2 import create_table
+from data.resault import User
 
 db_session.global_init("db/blogs.db")
 
+headers = {
+    "X-RapidAPI-Key": "871aadb731msh302174792d744b8p1b59bdjsn482167023d41",
+    "X-RapidAPI-Host": "wft-geo-db.p.rapidapi.com"
+}
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
@@ -48,7 +53,12 @@ async def start(update, context):
 
 
 async def help_command(update, context):
-    await update.message.reply_text("")  # TO Do: написать что-то
+    await update.message.reply_text(""
+                                    "Команда /start выводит приветствие."
+                                    "Команда /help помогает разобрать в использовании бота."
+                                    "Команда /info_country позволяет узнать базовые сведения о стране по её названию."
+                                    "Команда /game_capital запускает интеллектуальную игру по проверке знания столиц стран."
+                                    "Команда /game_flag запускает интеллектуальную игру по проверке знания флагов стран.")
 
 
 async def info_country(update, context):
@@ -131,6 +141,12 @@ async def first_response_capital(update, context):
         await update.message.reply_text("Хотели бы вы подробнее узнать о стране?")
         return 2
     await update.message.reply_text(f'Вы проиграли, Ваш результат: {cor}.')
+    user = User()
+    user.type_game = "Столицы."
+    user.score = cor
+    db_sess = db_session.create_session()
+    db_sess.add(user)
+    db_sess.commit()
     return ConversationHandler.END
 
 
@@ -169,6 +185,12 @@ async def third_response_capital(update, context):
         await update.message.reply_text("Хотели бы Вы подробнее узнать о стране?")
         return 2
     await update.message.reply_text(f'Вы проиграли, Ваш результат: {cor}')
+    user = User()
+    user.type_game = "Столицы."
+    user.score = cor
+    db_sess = db_session.create_session()
+    db_sess.add(user)
+    db_sess.commit()
     return ConversationHandler.END
 
 
@@ -188,6 +210,12 @@ async def first_response_flag(update, context):
         await update.message.reply_text("Хотите ли вы узнать подробнее о стране?")
         return 2
     await update.message.reply_text(f'Вы проиграли, Ваш результат: {cor}.')
+    user = User()
+    user.type_game = "Флаги."
+    user.score = cor
+    db_sess = db_session.create_session()
+    db_sess.add(user)
+    db_sess.commit()
     return ConversationHandler.END
 
 
@@ -224,6 +252,12 @@ async def third_response_flag(update, context):
         await update.message.reply_text("Хотели бы вы подробнее узнать о стране?")
         return 2
     await update.message.reply_text(f'Вы проиграли, Ваш результат: {cor}.')
+    user = User()
+    user.type_game = "Флаги."
+    user.score = cor
+    db_sess = db_session.create_session()
+    db_sess.add(user)
+    db_sess.commit()
     return ConversationHandler.END
 
 
@@ -277,3 +311,4 @@ def main():
 if __name__ == '__main__':
     create_table()
     main()
+
