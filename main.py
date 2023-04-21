@@ -15,8 +15,8 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-reply_keyboard = [['/start', '/help', '/results'],
-                  ['/info_country', '/game_capital', '/game_flag', '/game_location']]
+reply_keyboard = [['/results', '/info_country'],
+                  ['/game_capital', '/game_flag', '/game_location']]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 contr = ""
 count = 0
@@ -59,11 +59,16 @@ async def start(update, context):
 
 async def help_command(update, context):
     await update.message.reply_text(""
-                                    "Команда /start выводит приветствие."
-                                    "Команда /help помогает разобрать в использовании бота."
-                                    "Команда /info_country позволяет узнать базовые сведения о стране по её названию."
-                                    "Команда /game_capital запускает интеллектуальную игру по проверке знания столиц стран."
-                                    "Команда /game_flag запускает интеллектуальную игру по проверке знания флагов стран.")
+                                    "Команда /start выводит приветствие.\n"
+                                    "Команда /help помогает разобрать в использовании бота.\n"
+                                    "Команда /results выводит ваши результаты в преведущих играх.\n"
+                                    "Команда /info_country позволяет узнать базовые сведения о стране по её названию.\n"
+                                    "Команда /game_capital запускает интеллектуальную игру по проверке знания столиц "
+                                    "стран.\n"
+                                    "Команда /game_flag запускает интеллектуальную игру по проверке знания "
+                                    "флагов стран.\n"
+                                    "Команда /game_location запускает интеллектуальную игру по проверке знания "
+                                    "местоположения стран\n")
 
 
 async def info_country(update, context):
@@ -401,7 +406,7 @@ location_handler = ConversationHandler(
 
 
 def main():
-    application = Application.builder().token("6211811458:AAE10kS4o9HfzHTQa_uGXHaWXuqu2bia83A").build()
+    application = Application.builder().token("5847601109:AAHKlZOuGU7ZOX9yN8zW1b7a8wmU2zm8vPY").build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("results", res))
