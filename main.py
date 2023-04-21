@@ -16,7 +16,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 reply_keyboard = [['/start', '/help', '/results'],
-                  ['/info_country', '/game_capital', '/game_flag']]
+                  ['/info_country', '/game_capital', '/game_flag', '/game_location']]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 contr = ""
 count = 0
@@ -95,6 +95,18 @@ async def game_flag(update, context):
     return 1
 
 
+async def game_location(update, context):
+    global info
+    await update.message.reply_text("Привет! И так начнём игру.")
+    update_info()
+    await update.message.reply_text(
+        f"{info.name}\n")
+    global count, cor
+    count = 0
+    cor = 0
+    return 1
+
+
 async def first_response_info(update, context):
     global info
     locality = update.message.text
@@ -109,7 +121,8 @@ async def first_response_info(update, context):
             f"Расположение: {info.location}\n"
             f"Площадь: {info.square}\n"
             f"Язык: {info.language}\n"
-            f"Население: {info.population}\n")
+            f"Население: {info.population}\n"
+            f"Валюта: {info.currentcy}\n")
         await get_image(update, context)
     await update.message.reply_text("Вы хотите продолжить?")
     return 2
@@ -166,7 +179,8 @@ async def second_response_capital(update, context):
             f"Расположение: {info.location}\n"
             f"Площадь: {info.square}\n"
             f"Язык: {info.language}\n"
-            f"Население: {info.population}\n")
+            f"Население: {info.population}\n"
+            f"Валюта: {info.currentcy}\n")
         await get_image(update, context)
     await update.message.reply_text(f"Продолжаем.")
     update_info()
@@ -237,7 +251,8 @@ async def second_response_flag(update, context):
             f"Расположение: {info.location}\n"
             f"Площадь: {info.square}\n"
             f"Язык: {info.language}\n"
-            f"Население: {info.population}\n")
+            f"Население: {info.population}\n"
+            f"Валюта: {info.currentcy}\n")
     await update.message.reply_text(f"Продолжаем.")
     update_info()
     await get_image(update, context)  # Picture
@@ -263,6 +278,75 @@ async def third_response_flag(update, context):
     user = User()
     user.user_name = update.effective_user.mention_html()
     user.type_game = "Флаги."
+    user.score = cor
+    db_sess = db_session.create_session()
+    db_sess.add(user)
+    db_sess.commit()
+    return ConversationHandler.END
+
+
+async def first_response_location(update, context):
+    locality = update.message.text.title()
+    global count, cor
+    db_sess = db_session.create_session()
+    con = db_sess.query(Country).filter((Country.location == locality) | (Country.location_precise == locality))
+    if list(con):
+        await update.message.reply_text('Верно.')
+        cor += 1
+    else:
+        await update.message.reply_text("Неверно.")
+        count += 1
+    if count < 2:
+        await update.message.reply_text("Хотите ли вы узнать подробнее о стране?")
+        return 2
+    await update.message.reply_text(f'Вы проиграли, Ваш результат: {cor}.')
+    user = User()
+    user.user_name = update.effective_user.mention_html()
+    user.type_game = "Части света."
+    user.score = cor
+    db_sess = db_session.create_session()
+    db_sess.add(user)
+    db_sess.commit()
+    return ConversationHandler.END
+
+
+async def second_response_location(update, context):
+    locality = update.message.text
+    if locality.lower() == 'да':
+        await update.message.reply_text(
+            f"Название страны: {info.name}\n"
+            f"Полное название страны: {info.fullname}\n"
+            f"Столица: {info.capital}\n"
+            f"Расположение: {info.location}\n"
+            f"Площадь: {info.square}\n"
+            f"Язык: {info.language}\n"
+            f"Население: {info.population}\n"
+            f"Валюта: {info.currentcy}\n")
+        await get_image(update, context)
+    await update.message.reply_text(f"Продолжаем.")
+    update_info()
+
+    return 3
+
+
+async def third_response_location(update, context):
+    locality = update.message.text.title()
+    global count, cor
+    db_sess = db_session.create_session()
+    con = db_sess.query(Country).filter((Country.location == locality) | (Country.location_precise == locality))
+    if list(con):
+        await update.message.reply_text('Верно.')
+        cor += 1
+    else:
+        await update.message.reply_text("Неверно.")
+        count += 1
+    if count < 2:
+        await update.message.reply_text("Хотели бы вы подробнее узнать о стране?")
+        return 2
+    await update.message.reply_text(f'Вы проиграли, Ваш результат: {cor}.')
+    user = User()
+    user.user_name = update.effective_user.mention_html()
+    user.type_game = "Части света"
     user.score = cor
     db_sess = db_session.create_session()
     db_sess.add(user)
@@ -306,6 +390,15 @@ flag_handler = ConversationHandler(
     fallbacks=[CommandHandler('stop', stop)]
 )
 
+location_handler = ConversationHandler(
+    entry_points=[CommandHandler('game_location', game_location)],
+    states={
+        1: [MessageHandler(filters.TEXT & ~filters.COMMAND, first_response_location)],
+        2: [MessageHandler(filters.TEXT & ~filters.COMMAND, second_response_location)],
+        3: [MessageHandler(filters.TEXT & ~filters.COMMAND, third_response_location)],
+    },
+    fallbacks=[CommandHandler('stop', stop)])
+
 
 def main():
     application = Application.builder().token("6211811458:AAE10kS4o9HfzHTQa_uGXHaWXuqu2bia83A").build()
@@ -315,6 +408,7 @@ def main():
     application.add_handler(flag_handler)
     application.add_handler(info_handler)
     application.add_handler(capital_handler)
+    application.add_handler(location_handler)
     application.run_polling()
 
 
