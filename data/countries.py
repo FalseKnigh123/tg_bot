@@ -2,7 +2,7 @@ import datetime
 
 import sqlalchemy
 
-from tg_bot.data.db_session import SqlAlchemyBase
+from data.db_session import SqlAlchemyBase
 
 
 class Country(SqlAlchemyBase):
