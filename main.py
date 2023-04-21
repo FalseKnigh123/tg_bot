@@ -10,17 +10,12 @@ from data.resault import User
 
 db_session.global_init("db/blogs.db")
 
-headers = {
-    "X-RapidAPI-Key": "871aadb731msh302174792d744b8p1b59bdjsn482167023d41",
-    "X-RapidAPI-Host": "wft-geo-db.p.rapidapi.com"
-}
-
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
 )
 
 logger = logging.getLogger(__name__)
-reply_keyboard = [['/start', '/help'],
+reply_keyboard = [['/start', '/help', '/results'],
                   ['/info_country', '/game_capital', '/game_flag']]
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 contr = ""
@@ -42,6 +37,16 @@ def get_country(country):
     con = db_sess.query(Country).filter((Country.name == country) | (Country.fullname == country) |
                                         (Country.english == country))[0]
     return con
+
+
+async def res(update, context):
+    user = update.effective_user.mention_html()
+    db_sess = db_session.create_session()
+    con = db_sess.query(User).filter(User.user_name == user)
+    text = ''
+    for u in con:
+        text += f'Ваш результат в тесте {u.type_game} = {u.score} \n'
+    await update.message.reply_text(text)
 
 
 async def start(update, context):
@@ -112,7 +117,7 @@ async def first_response_info(update, context):
 
 async def second_response_info(update, context):
     locality = update.message.text
-    if locality == 'да':
+    if locality.lower() == 'да':
         await update.message.reply_text("Напишите новую страну.")
         return 1
     else:
@@ -142,6 +147,7 @@ async def first_response_capital(update, context):
         return 2
     await update.message.reply_text(f'Вы проиграли, Ваш результат: {cor}.')
     user = User()
+    user.user_name = update.effective_user.mention_html()
     user.type_game = "Столицы."
     user.score = cor
     db_sess = db_session.create_session()
@@ -152,7 +158,7 @@ async def first_response_capital(update, context):
 
 async def second_response_capital(update, context):
     locality = update.message.text
-    if locality == 'да':
+    if locality.lower() == 'да':
         await update.message.reply_text(
             f"Название страны: {info.name}\n"
             f"Полное название страны: {info.fullname}\n"
@@ -186,6 +192,7 @@ async def third_response_capital(update, context):
         return 2
     await update.message.reply_text(f'Вы проиграли, Ваш результат: {cor}')
     user = User()
+    user.user_name = update.effective_user.mention_html()
     user.type_game = "Столицы."
     user.score = cor
     db_sess = db_session.create_session()
@@ -211,6 +218,7 @@ async def first_response_flag(update, context):
         return 2
     await update.message.reply_text(f'Вы проиграли, Ваш результат: {cor}.')
     user = User()
+    user.user_name = update.effective_user.mention_html()
     user.type_game = "Флаги."
     user.score = cor
     db_sess = db_session.create_session()
@@ -221,7 +229,7 @@ async def first_response_flag(update, context):
 
 async def second_response_flag(update, context):
     locality = update.message.text
-    if locality == 'да':
+    if locality.lower() == 'да':
         await update.message.reply_text(
             f"Название страны: {info.name}\n"
             f"Полное название страны: {info.fullname}\n"
@@ -253,6 +261,7 @@ async def third_response_flag(update, context):
         return 2
     await update.message.reply_text(f'Вы проиграли, Ваш результат: {cor}.')
     user = User()
+    user.user_name = update.effective_user.mention_html()
     user.type_game = "Флаги."
     user.score = cor
     db_sess = db_session.create_session()
@@ -301,7 +310,8 @@ flag_handler = ConversationHandler(
 def main():
     application = Application.builder().token("6211811458:AAE10kS4o9HfzHTQa_uGXHaWXuqu2bia83A").build()
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command()))
+    application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("results", res))
     application.add_handler(flag_handler)
     application.add_handler(info_handler)
     application.add_handler(capital_handler)
@@ -311,4 +321,3 @@ def main():
 if __name__ == '__main__':
     create_table()
     main()
-
