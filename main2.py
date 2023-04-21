@@ -2,8 +2,8 @@ import csv
 import sys
 
 
-from tg_bot.data import db_session
-from tg_bot.data.countries import Country
+from data import db_session
+from data.countries import Country
 
 
 def loadTable(table_name):
@@ -15,6 +15,8 @@ def loadTable(table_name):
 
 def create_table():
     db_sess = db_session.create_session()
+    db_sess.query(Country).filter(True).delete()
+    db_sess.commit()
 
     for cont in loadTable('www.artlebedev.ru.csv'):
         country = Country()
