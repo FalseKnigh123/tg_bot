@@ -1,9 +1,7 @@
 import logging
-import time
 import aiohttp as aiohttp
 from telegram.ext import Application, MessageHandler, filters, CommandHandler, ConversationHandler
 from telegram import ReplyKeyboardMarkup
-import requests
 from random import choice
 from data import db_session
 from data.countries import Country
@@ -27,20 +25,22 @@ markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 contr = ""
 count = 0
 cor = 0
-info = ''
+info = {}
 
 
-def get_response(country):
-    try:
-        db_sess = db_session.create_session()
-        con = db_sess.query(Country).filter((Country.name == country) | (Country.fullname == country))[0]
-        url = f"https://wft-geo-db.p.rapidapi.com/v1/geo/countries/{con.alpha2}"  # бд
-        response = requests.request("GET", url, headers=headers).json()
-        if 'errors' in response:
-            return {}
-        return response
-    except IndexError as e:
-        return {}
+def update_info():
+    global info
+    db_sess = db_session.create_session()
+    con = db_sess.query(Country).all()
+    info = choice(con)
+
+
+def get_country(country):
+    global info
+    db_sess = db_session.create_session()
+    con = db_sess.query(Country).filter((Country.name == country) | (Country.fullname == country) |
+                                        (Country.english == country))[0]
+    return con
 
 
 async def start(update, context):
@@ -63,16 +63,10 @@ async def info_country(update, context):
 
 async def game_capital(update, context):
     global info
+    await update.message.reply_text("Привет! И так начнем игру.")
+    update_info()
     await update.message.reply_text(
-        "Привет! И так начнем игру.")
-    db_sess = db_session.create_session()
-    con = db_sess.query(Country).all()
-    info = get_response(choice(con).name)
-    while not info:
-        time.sleep(1)
-        info = get_response(choice(con).name)
-    await update.message.reply_text(
-        f"{info['data']['capital']}\n")
+        f"{info.capital}\n")
     global count, cor
     count = 0
     cor = 0
@@ -81,15 +75,9 @@ async def game_capital(update, context):
 
 async def game_flag(update, context):
     global info
-    await update.message.reply_text(
-        "Привет! И так начнём игру.")
-    db_sess = db_session.create_session()
-    con = db_sess.query(Country).all()
-    info = get_response(choice(con).name)
-    while not info:
-        time.sleep(1)
-        info = get_response(choice(con).name)
-    await get_image(update, context)# Обработка картинок
+    await update.message.reply_text("Привет! И так начнём игру.")
+    update_info()
+    await get_image(update, context)
     global count, cor
     count = 0
     cor = 0
@@ -98,13 +86,13 @@ async def game_flag(update, context):
 
 async def first_response_info(update, context):
     locality = update.message.text
-    info = get_response(locality)
-    if not info:
+    data = get_country(locality)
+    if not data:
         await update.message.reply_text('Такой страны не существует или ты ввел не корректное название')
     else:
         await update.message.reply_text(
-        f"Полное название страны: {info['data']['name']}\n."
-        f"Столица: {info['data']['capital']}\n.")
+        f"Полное название страны: {data.fullname}\n."
+        f"Столица: {data.capital}\n.")
     await update.message.reply_text("Вы хотите продолжить?")
     return 2
 
@@ -125,12 +113,11 @@ async def stop(update, context):
 
 
 async def first_response_capital(update, context):
-    global info
-    locality = update.message.text # генератор случ страны
+    locality = update.message.text
     global count, cor
     db_sess = db_session.create_session()
     con = db_sess.query(Country).filter((Country.name == locality) | (Country.fullname == locality))
-    if locality == info['data']['name'] or list(con):
+    if list(con):
         await update.message.reply_text('Верно.')
         cor += 1
     else:
@@ -144,34 +131,25 @@ async def first_response_capital(update, context):
 
 
 async def second_response_capital(update, context):
-    global info
-    # Рандом и бд  Вместо Us должна быть переменная с кодом страны
     locality = update.message.text
+    data = get_country(info.fullname)
     if locality == 'да':
         await update.message.reply_text(
-            f"Полное название страны: {info['data']['name']}\n."
-            f"Столица: {info['data']['capital']}\n.")
+            f"Полное название страны: {data.fullname}\n."
+            f"Столица: {data.capital}\n.")
     await update.message.reply_text(f"Продолжаем.")
-    db_sess = db_session.create_session()
-    con = db_sess.query(Country).all()
-    info = get_response(choice(con).name)
-    print(info)
-    while not info:
-        time.sleep(1)
-        info = get_response(choice(con).name)
-    print(info)
+    update_info()
     await update.message.reply_text(
-        f"{info['data']['capital']}\n")
+        f"{info.capital}\n")
     return 3
 
 
 async def third_response_capital(update, context):
-    global info  # Рандом и бд  Вместо Us должна быть переменная с кодом страны
     locality = update.message.text
     global count, cor
     db_sess = db_session.create_session()
     con = db_sess.query(Country).filter((Country.name == locality) | (Country.fullname == locality))
-    if locality == info['data']['name'] or list(con):
+    if list(con):
         await update.message.reply_text('Верно.')
         cor += 1
     else:
@@ -186,10 +164,10 @@ async def third_response_capital(update, context):
 
 async def first_response_flag(update, context):
     locality = update.message.text
-    global info
-    info = get_response('us')  # Рандом и бд  Вместо Us должна быть переменная с кодом страны
     global count, cor
-    if locality == info['data']['name']:
+    db_sess = db_session.create_session()
+    con = db_sess.query(Country).filter((Country.name == locality) | (Country.fullname == locality))
+    if list(con):
         await update.message.reply_text('Верно.')
         cor += 1
     else:
@@ -203,24 +181,24 @@ async def first_response_flag(update, context):
 
 
 async def second_response_flag(update, context):
-    global info
-    info = get_response('us')  # Рандом и бд  Вместо Us должна быть переменная с кодом страны
     locality = update.message.text
+    data = get_country(info.capital)
     if locality == 'да':
         await update.message.reply_text(
-            f"Полное название страны {info['data']['name']}\n"
-            f"Столица {info['data']['capital']}\n")
+            f"Полное название страны: {data.fullname}\n."
+            f"Столица: {data.capital}\n.")
     await update.message.reply_text(f"Продолжаем.")
-    await update.message.reply_text(f"Здесь должа быть картинка.") # Picture
+    update_info()
+    await get_image(update, context) # Picture
     return 3
 
 
 async def third_response_flag(update, context):
-    global info
-    info = get_response('us')  # Рандом и бд  Вместо Us должна быть переменная с кодом страны
     locality = update.message.text
     global count, cor
-    if locality == info['data']['name']:
+    db_sess = db_session.create_session()
+    con = db_sess.query(Country).filter((Country.name == locality) | (Country.fullname == locality))
+    if list(con):
         await update.message.reply_text('Верно.')
         cor += 1
     else:
@@ -234,8 +212,7 @@ async def third_response_flag(update, context):
 
 
 async def get_image(update, context):
-    global info
-    url = f"https://flagsapi.com/{info['data']['code']}/flat/64.png"
+    url = f"https://flagcdn.com/w2560/{info.alpha2.lower()}.png"
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as r:
             data = await r.read()
