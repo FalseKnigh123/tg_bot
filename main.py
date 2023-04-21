@@ -9,10 +9,6 @@ from main2 import create_table
 
 db_session.global_init("db/blogs.db")
 
-headers = {
-    "X-RapidAPI-Key": "871aadb731msh302174792d744b8p1b59bdjsn482167023d41",
-    "X-RapidAPI-Host": "wft-geo-db.p.rapidapi.com"
-}
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG
@@ -52,7 +48,7 @@ async def start(update, context):
 
 
 async def help_command(update, context):
-    await update.message.reply_text("Напишем всякой фигни.")  # TO Do: написать что-то
+    await update.message.reply_text("")  # TO Do: написать что-то
 
 
 async def info_country(update, context):
@@ -85,14 +81,21 @@ async def game_flag(update, context):
 
 
 async def first_response_info(update, context):
+    global info
     locality = update.message.text
-    data = get_country(locality)
-    if not data:
+    info = get_country(locality)
+    if not info:
         await update.message.reply_text('Такой страны не существует или ты ввел не корректное название')
     else:
         await update.message.reply_text(
-        f"Полное название страны: {data.fullname}\n."
-        f"Столица: {data.capital}\n.")
+            f"Название страны: {info.name}\n"
+            f"Полное название страны: {info.fullname}\n"
+            f"Столица: {info.capital}\n"
+            f"Расположение: {info.location}\n"
+            f"Площадь: {info.square}\n"
+            f"Язык: {info.language}\n"
+            f"Население: {info.population}\n")
+        await get_image(update, context)
     await update.message.reply_text("Вы хотите продолжить?")
     return 2
 
@@ -113,10 +116,11 @@ async def stop(update, context):
 
 
 async def first_response_capital(update, context):
-    locality = update.message.text
+    locality = update.message.text.title()
     global count, cor
     db_sess = db_session.create_session()
-    con = db_sess.query(Country).filter((Country.name == locality) | (Country.fullname == locality))
+    con = db_sess.query(Country).filter((Country.name == locality) | (Country.fullname == locality) |
+                                        (Country.english == locality))
     if list(con):
         await update.message.reply_text('Верно.')
         cor += 1
@@ -132,11 +136,16 @@ async def first_response_capital(update, context):
 
 async def second_response_capital(update, context):
     locality = update.message.text
-    data = get_country(info.fullname)
     if locality == 'да':
         await update.message.reply_text(
-            f"Полное название страны: {data.fullname}\n."
-            f"Столица: {data.capital}\n.")
+            f"Название страны: {info.name}\n"
+            f"Полное название страны: {info.fullname}\n"
+            f"Столица: {info.capital}\n"
+            f"Расположение: {info.location}\n"
+            f"Площадь: {info.square}\n"
+            f"Язык: {info.language}\n"
+            f"Население: {info.population}\n")
+        await get_image(update, context)
     await update.message.reply_text(f"Продолжаем.")
     update_info()
     await update.message.reply_text(
@@ -145,10 +154,11 @@ async def second_response_capital(update, context):
 
 
 async def third_response_capital(update, context):
-    locality = update.message.text
+    locality = update.message.text.title()
     global count, cor
     db_sess = db_session.create_session()
-    con = db_sess.query(Country).filter((Country.name == locality) | (Country.fullname == locality))
+    con = db_sess.query(Country).filter((Country.name == locality) | (Country.fullname == locality) |
+                                        (Country.english == locality))
     if list(con):
         await update.message.reply_text('Верно.')
         cor += 1
@@ -163,10 +173,11 @@ async def third_response_capital(update, context):
 
 
 async def first_response_flag(update, context):
-    locality = update.message.text
+    locality = update.message.text.title()
     global count, cor
     db_sess = db_session.create_session()
-    con = db_sess.query(Country).filter((Country.name == locality) | (Country.fullname == locality))
+    con = db_sess.query(Country).filter((Country.name == locality) | (Country.fullname == locality) |
+                                        (Country.english == locality))
     if list(con):
         await update.message.reply_text('Верно.')
         cor += 1
@@ -182,22 +193,27 @@ async def first_response_flag(update, context):
 
 async def second_response_flag(update, context):
     locality = update.message.text
-    data = get_country(info.capital)
     if locality == 'да':
         await update.message.reply_text(
-            f"Полное название страны: {data.fullname}\n."
-            f"Столица: {data.capital}\n.")
+            f"Название страны: {info.name}\n"
+            f"Полное название страны: {info.fullname}\n"
+            f"Столица: {info.capital}\n"
+            f"Расположение: {info.location}\n"
+            f"Площадь: {info.square}\n"
+            f"Язык: {info.language}\n"
+            f"Население: {info.population}\n")
     await update.message.reply_text(f"Продолжаем.")
     update_info()
-    await get_image(update, context) # Picture
+    await get_image(update, context)  # Picture
     return 3
 
 
 async def third_response_flag(update, context):
-    locality = update.message.text
+    locality = update.message.text.title()
     global count, cor
     db_sess = db_session.create_session()
-    con = db_sess.query(Country).filter((Country.name == locality) | (Country.fullname == locality))
+    con = db_sess.query(Country).filter((Country.name == locality) | (Country.fullname == locality) |
+                                        (Country.english == locality))
     if list(con):
         await update.message.reply_text('Верно.')
         cor += 1
@@ -251,7 +267,7 @@ flag_handler = ConversationHandler(
 def main():
     application = Application.builder().token("6211811458:AAE10kS4o9HfzHTQa_uGXHaWXuqu2bia83A").build()
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", get_image))
+    application.add_handler(CommandHandler("help", help_command()))
     application.add_handler(flag_handler)
     application.add_handler(info_handler)
     application.add_handler(capital_handler)
@@ -261,4 +277,3 @@ def main():
 if __name__ == '__main__':
     create_table()
     main()
-

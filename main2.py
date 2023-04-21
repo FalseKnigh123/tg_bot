@@ -1,6 +1,4 @@
 import csv
-import sys
-
 
 from data import db_session
 from data.countries import Country
@@ -33,4 +31,3 @@ def create_table():
         country.population = int(cont[10]) if cont[10] else 0
         db_sess.add(country)
     db_sess.commit()
-
