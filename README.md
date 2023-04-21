@@ -22,7 +22,7 @@
   Our application implements several commands that the bot recognizes.
   Management: / and team name in English.
   We tried to pick up photos in good quality and more or less fresh information by country.
-  Our bot is located in the Telegram at the link
+  Our bot is located in the Telegram at the link:@Country_yl_bot
   
 • List of features:
   1. Get brief information about the country.
