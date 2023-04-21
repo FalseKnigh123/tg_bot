@@ -28,7 +28,7 @@
   1. Get brief information about the country.
   2. Play the "Name the country by capital" mode.
   3. Play the "Name the country by flag" mode.
-  4. 4. Play the "Name the part of the world in which the country is located" mode.
+  4. Play the "Name the part of the world in which the country is located" mode.
   5. Get information on using the bot using the /help command.
 
 
