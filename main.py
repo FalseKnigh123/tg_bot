@@ -295,7 +295,9 @@ async def first_response_location(update, context):
     locality = update.message.text.title()
     global count, cor
     db_sess = db_session.create_session()
-    con = db_sess.query(Country).filter((Country.location == locality) | (Country.location_precise == locality))
+    con = db_sess.query(Country).filter(((Country.location == locality) | (Country.location_precise == locality)) &
+                                        (Country.name == info.name))
+    print(list(con))
     if list(con):
         await update.message.reply_text('Верно.')
         cor += 1
@@ -331,7 +333,8 @@ async def second_response_location(update, context):
         await get_image(update, context)
     await update.message.reply_text(f"Продолжаем.")
     update_info()
-
+    await update.message.reply_text(
+        f"{info.name}\n")
     return 3
 
 
@@ -339,7 +342,9 @@ async def third_response_location(update, context):
     locality = update.message.text.title()
     global count, cor
     db_sess = db_session.create_session()
-    con = db_sess.query(Country).filter((Country.location == locality) | (Country.location_precise == locality))
+    con = db_sess.query(Country).filter(((Country.location == locality) | (Country.location_precise == locality)) &
+                                        (Country.name == info.name))
+    print(list(con))
     if list(con):
         await update.message.reply_text('Верно.')
         cor += 1
